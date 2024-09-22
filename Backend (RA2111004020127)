@@ -1,0 +1,72 @@
+from flask import Flask, request, jsonify
+import string
+import os
+
+app = Flask(__name__)
+
+# Endpoint that supports both GET and POST requests
+@app.route('/api/user_data', methods=['GET', 'POST'])
+def handle_request():
+    if request.method == 'GET':
+        # Handle GET request (return a simple message or structure)
+        return jsonify({
+            'status': 'success',
+            'message': 'Send a POST request with appropriate data'
+        })
+
+    elif request.method == 'POST':
+        # Extracting data from the POST request (JSON)
+        data = request.json
+
+        # 1. Get the data fields from the request JSON
+        user_id = data.get('user_id')
+        college_email = data.get('college_email')
+        roll_number = data.get('roll_number')
+        number_array = data.get('number_array', [])
+        alphabet_array = data.get('alphabet_array', [])
+
+        # 2. Get the highest lowercase alphabet in the array
+        lower_case_alphabets = [ch for ch in alphabet_array if ch.islower()]
+        highest_lowercase_alphabet = max(lower_case_alphabets) if lower_case_alphabets else None
+
+        # 3. File Handling
+        if 'file' in request.files:
+            uploaded_file = request.files['file']
+            file_name = uploaded_file.filename
+
+            # Validate if the file exists and has a valid MIME type
+            if file_name == '':
+                file_valid = False
+                file_mime_type = None
+                file_size_kb = None
+            else:
+                file_valid = True
+                file_mime_type = uploaded_file.mimetype
+                file_size_kb = len(uploaded_file.read()) / 1024  # Size in KB
+
+        else:
+            file_valid = False
+            file_mime_type = None
+            file_size_kb = None
+
+        # 4. Prepare the response JSON structure
+        response = {
+            'status': 'success',
+            'user_id': user_id,
+            'college_email': college_email,
+            'roll_number': roll_number,
+            'number_array': number_array,
+            'alphabet_array': alphabet_array,
+            'highest_lowercase_alphabet': highest_lowercase_alphabet,
+            'file': {
+                'valid': file_valid,
+                'mime_type': file_mime_type,
+                'size_kb': file_size_kb
+            }
+        }
+
+        return jsonify(response)
+
+if __name__ == '__main__':
+    # Running the Flask app on localhost, port 5000
+    app.run(debug=True, host='0.0.0.0', port=5000)
